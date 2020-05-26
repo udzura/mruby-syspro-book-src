@@ -1,4 +1,4 @@
 *.tar.gz
 .vagrant/
-mruby-*
+/mruby-*
 *.log
