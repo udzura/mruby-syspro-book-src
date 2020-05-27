@@ -5,7 +5,7 @@ class CalcPI
   attr_reader :precision
 
   def leibniz
-    pion4 = Rational(0)
+    pion4 = 0r
     (0..precision).each do |n|
       delta = Rational((-1) ** n) / (2 * n + 1)
       pion4 = pion4 + delta
@@ -14,10 +14,10 @@ class CalcPI
   end
 
   def gauss_l(iteration: 6)
-    a = Rational(1)
-    b = Rational(1) / babylonian_sqrt(2)
-    t = Rational(1, 4)
-    p_ = Rational(1)
+    a = 1r
+    b = 1r / babylonian_sqrt(2)
+    t = 0.25r
+    p_ = 1r
 
     (1..iteration).each do
       an = (a + b) / 2
