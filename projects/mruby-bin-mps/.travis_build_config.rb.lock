@@ -1,0 +1,12 @@
+---
+mruby_version:
+  version: 2.1.1
+  release_no: 20101
+  git_commit: f9d113f7647121f8578742a2a9ac256ece365e3f
+builds:
+  host:
+    https://github.com/iij/mruby-errno.git:
+      url: https://github.com/iij/mruby-errno.git
+      branch: HEAD
+      commit: b4415207ff6ea62360619c89a1cff83259dc4db0
+      version: 0.0.0
