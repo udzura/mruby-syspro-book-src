@@ -10,3 +10,13 @@ builds:
       branch: HEAD
       commit: b4415207ff6ea62360619c89a1cff83259dc4db0
       version: 0.0.0
+    https://github.com/iij/mruby-dir.git:
+      url: https://github.com/iij/mruby-dir.git
+      branch: HEAD
+      commit: 89dceefa1250fb1ae868d4cb52498e9e24293cd1
+      version: 0.0.0
+    https://github.com/iij/mruby-regexp-pcre.git:
+      url: https://github.com/iij/mruby-regexp-pcre.git
+      branch: HEAD
+      commit: a961225c0953dd2bd987111f0836821573616de2
+      version: 0.0.0
