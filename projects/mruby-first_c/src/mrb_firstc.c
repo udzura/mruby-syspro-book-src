@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <mruby.h>
 #include <mruby/error.h>
 #include <mruby/string.h>
@@ -38,12 +39,12 @@ static mrb_value mrb_my_uname(mrb_state *mrb, mrb_value self) {
 /* } */
 
 static mrb_value mrb_my_stat_size(mrb_state *mrb, mrb_value self) {
-  struct stat *buf;
+  struct stat buf = {0};
   char *pathname;
   mrb_get_args(mrb, "z", &pathname);
-  stat(pathname, buf);
+  stat(pathname, &buf);
 
-  return mrb_fixnum_value((mrb_int)buf->st_size);
+  return mrb_fixnum_value((mrb_int)buf.st_size);
 }
 
 void mrb_mruby_first_c_gem_init(mrb_state *mrb)
