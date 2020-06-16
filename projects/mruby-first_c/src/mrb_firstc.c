@@ -7,6 +7,9 @@
 */
 
 #include <sys/utsname.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <mruby.h>
 #include <mruby/error.h>
 #include <mruby/string.h>
@@ -25,11 +28,30 @@ static mrb_value mrb_my_uname(mrb_state *mrb, mrb_value self) {
   return ret;
 }
 
+/* static mrb_value mrb_my_stat(mrb_state *mrb, mrb_value self) { */
+/*   struct stat buf; */
+/*   char *pathname; */
+/*   mrb_get_args(mrb, "z", &pathname); */
+/*   stat(pathname, &buf); */
+
+/*   return mrb_fixnum_value((mrb_int)buf.st_size); */
+/* } */
+
+static mrb_value mrb_my_stat_size(mrb_state *mrb, mrb_value self) {
+  struct stat *buf;
+  char *pathname;
+  mrb_get_args(mrb, "z", &pathname);
+  stat(pathname, buf);
+
+  return mrb_fixnum_value((mrb_int)buf->st_size);
+}
+
 void mrb_mruby_first_c_gem_init(mrb_state *mrb)
 {
   struct RClass *firstc;
   firstc = mrb_define_class(mrb, "FirstC", mrb->object_class);
   mrb_define_class_method(mrb, firstc, "my_uname", mrb_my_uname, MRB_ARGS_NONE());
+  mrb_define_class_method(mrb, firstc, "my_stat_size", mrb_my_stat_size, MRB_ARGS_REQ(1));
   DONE;
 }
 
