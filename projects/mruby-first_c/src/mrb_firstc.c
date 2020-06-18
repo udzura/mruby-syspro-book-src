@@ -29,20 +29,14 @@ static mrb_value mrb_my_uname(mrb_state *mrb, mrb_value self) {
   return ret;
 }
 
-/* static mrb_value mrb_my_stat(mrb_state *mrb, mrb_value self) { */
-/*   struct stat buf; */
-/*   char *pathname; */
-/*   mrb_get_args(mrb, "z", &pathname); */
-/*   stat(pathname, &buf); */
-
-/*   return mrb_fixnum_value((mrb_int)buf.st_size); */
-/* } */
-
 static mrb_value mrb_my_stat_size(mrb_state *mrb, mrb_value self) {
-  struct stat buf = {0};
+  struct stat buf;
   char *pathname;
   mrb_get_args(mrb, "z", &pathname);
-  stat(pathname, &buf);
+  int ret = stat(pathname, &buf);
+  if (ret == -1) {
+    mrb_sys_fail(mrb, "stat failed");
+  }
 
   return mrb_fixnum_value((mrb_int)buf.st_size);
 }
