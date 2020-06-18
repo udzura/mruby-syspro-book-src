@@ -37,8 +37,16 @@ static mrb_value mrb_my_stat_size(mrb_state *mrb, mrb_value self) {
   if (ret == -1) {
     mrb_sys_fail(mrb, "stat failed");
   }
+  mrb_fixnum();
 
   return mrb_fixnum_value((mrb_int)buf.st_size);
+}
+
+#include <stdio.h>
+static mrb_value mrb_show_sizeof(mrb_state *mrb, mrb_value self) {
+  printf("mrb_value=%ld, mrb_state*=%ld, pointer=%ld",
+         sizeof(mrb_value), sizeof(mrb_state *), sizeof(void *));
+  return mrb_nil_value();
 }
 
 void mrb_mruby_first_c_gem_init(mrb_state *mrb)
@@ -47,6 +55,8 @@ void mrb_mruby_first_c_gem_init(mrb_state *mrb)
   firstc = mrb_define_class(mrb, "FirstC", mrb->object_class);
   mrb_define_class_method(mrb, firstc, "my_uname", mrb_my_uname, MRB_ARGS_NONE());
   mrb_define_class_method(mrb, firstc, "my_stat_size", mrb_my_stat_size, MRB_ARGS_REQ(1));
+
+  mrb_define_class_method(mrb, firstc, "show_sizeof", mrb_show_sizeof, MRB_ARGS_NONE());
   DONE;
 }
 
