@@ -1,4 +1,4 @@
-# mruby-file_stat   [![Build Status](https://travis-ci.org/udzura/mruby-file_stat.svg?branch=master)](https://travis-ci.org/udzura/mruby-file_stat)
+# mruby-file-stat   [![Build Status](https://travis-ci.org/udzura/mruby-file-stat.svg?branch=master)](https://travis-ci.org/udzura/mruby-file-stat)
 FileStat class
 ## install by mrbgems
 - add conf.gem line to `build_config.rb`
@@ -8,7 +8,7 @@ MRuby::Build.new do |conf|
 
     # ... (snip) ...
 
-    conf.gem :github => 'udzura/mruby-file_stat'
+    conf.gem :github => 'udzura/mruby-file-stat'
 end
 ```
 ## example
