@@ -14,13 +14,12 @@
 #include <sys/sysmacros.h>
 
 #include <mruby.h>
+#include <mruby/class.h>
 #include <mruby/data.h>
 #include <mruby/error.h>
 #include <mruby/string.h>
 #include <mruby/value.h>
 #include <mruby/variable.h>
-
-//#include <mruby/class.h> // for MRB_TT*
 
 #include "mrb_filestat.h"
 
@@ -30,8 +29,15 @@ typedef struct {
   struct stat* stat;
 } mrb_filestat_data;
 
+void mrb_filestat_free(mrb_state *mrb, void *p)
+{
+  mrb_filestat_data *data = (mrb_filestat_data *)p;
+  mrb_free(mrb, data->stat);
+  mrb_free(mrb, data);
+}
+
 static const struct mrb_data_type mrb_filestat_data_type = {
-  "mrb_filestat_data", mrb_free,
+  "mrb_filestat_data", mrb_filestat_free,
 };
 
 static mrb_value mrb_filestat_init(mrb_state *mrb, mrb_value self)
@@ -166,7 +172,7 @@ void mrb_mruby_file_stat_gem_init(mrb_state *mrb)
 
   mrb_define_method(mrb, filestat, "mtime", mrb_filestat_mtime, MRB_ARGS_NONE());
 
-  //MRB_SET_INSTANCE_TT(filestat, MRB_TT_DATA);
+  MRB_SET_INSTANCE_TT(filestat, MRB_TT_DATA);
 
   DONE;
 }
