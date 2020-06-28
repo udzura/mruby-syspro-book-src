@@ -1,12 +1,8 @@
-db = SQLite3::Database.new('/var/lib/nginx/dyn-proxy.db')
-
-backends = []
-db.execute('select upstream, weight from servers;') do |row, _|
-  serv, weight = *row
-  weight.times do
-    backends << serv
-  end
-end
+backends = [
+  "http://127.0.0.1:4567/",
+  "http://127.0.0.1:4568/",
+  "http://127.0.0.1:4569/"
+]
 
 r = Apache::Request.new
 r.handler  = "proxy-server"
