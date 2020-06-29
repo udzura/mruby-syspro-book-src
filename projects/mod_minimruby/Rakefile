@@ -1,0 +1,27 @@
+file :mruby do
+  sh "git clone --depth=1 git://github.com/mruby/mruby.git"
+  Dir.chdir 'mruby' do
+    sh "git fetch --tags"
+    rev = %x{git rev-parse 2.1.1}
+    sh "git checkout #{rev}"
+  end
+end
+
+MRUBY_CONFIG = File.expand_path("apache_build_config.rb")
+desc "compile binary"
+task :compile_mruby => :mruby do
+  sh "cd mruby && rake all MRUBY_CONFIG=#{MRUBY_CONFIG}"
+end
+
+file '.libs/mod_minimruby.so' =>
+     [:compile_mruby, "mruby/build/host/lib/libmruby.a", "mod_minimruby.c"] do
+  sh "apxs2 -a -c -I./mruby/include -L./mruby/build/host/lib " +
+     "-lcrypto -lm -lmruby -lm -lreadline -lpthread -lrt " +
+     "-Wc,'-std=c99 -Wall -Werror-implicit-function-declaration -g' " +
+     "-Wl,'-lcrypto -lm ' ./mod_minimruby.c"
+end
+
+desc "Install mod_minimruby.so to apache2"
+task :install => '.libs/mod_minimruby.so' do
+  sh "install ./.libs/mod_minimruby.so /usr/lib/apache2/modules/mod_minimruby.so"
+end

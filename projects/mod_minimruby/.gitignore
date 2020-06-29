@@ -7,3 +7,5 @@
 */*.lo
 */*.slo
 .libs/
+
+mruby/
