@@ -1,7 +1,11 @@
 #include <mruby.h>
+#include <mruby/string.h>
 
 #define CORE_PRIVATE
-include "httpd.h"
+#include "httpd.h"
+#include "apr_strings.h"
+#include "http_protocol.h"
+
 
 request_rec *minim_request_rec = NULL;
 
@@ -27,10 +31,9 @@ static mrb_value minim_ap_str_or_nil_value(mrb_state *mrb, apr_pool_t *p, const 
 
   if (value == NULL) {
     return mrb_nil_value();
-  } else {
-    val = apr_pstrdup(p, str);
-    return mrb_str_new(mrb, value, len);
   }
+  val = apr_pstrdup(p, value);
+  return mrb_str_new_cstr(mrb, val);
 }
 
 static mrb_value minim_get_request_body(mrb_state *mrb, mrb_value self)
@@ -53,49 +56,49 @@ static mrb_value minim_get_request_body(mrb_state *mrb, mrb_value self)
 
 static mrb_value minim_get_request_unparsed_uri(mrb_state *mrb, mrb_value self)
 {
-  request_rec *r = ap_mrb_get_request();
+  request_rec *r = minim_get_request();
   return minim_ap_str_or_nil_value(mrb, r->pool, r->unparsed_uri);
 }
 
 static mrb_value minim_get_request_uri(mrb_state *mrb, mrb_value self)
 {
-  request_rec *r = ap_mrb_get_request();
+  request_rec *r = minim_get_request();
   return minim_ap_str_or_nil_value(mrb, r->pool, r->uri);
 }
 
 static mrb_value minim_get_request_path_info(mrb_state *mrb, mrb_value self)
 {
-  request_rec *r = ap_mrb_get_request();
+  request_rec *r = minim_get_request();
   return minim_ap_str_or_nil_value(mrb, r->pool, r->path_info);
 }
 
 static mrb_value minim_get_request_args(mrb_state *mrb, mrb_value self)
 {
-  request_rec *r = ap_mrb_get_request();
+  request_rec *r = minim_get_request();
   return minim_ap_str_or_nil_value(mrb, r->pool, r->args);
 }
 
 static mrb_value minim_get_request_content_type(mrb_state *mrb, mrb_value self)
 {
-  request_rec *r = ap_mrb_get_request();
+  request_rec *r = minim_get_request();
   return minim_ap_str_or_nil_value(mrb, r->pool, r->content_type);
 }
 
 static mrb_value minim_get_request_method(mrb_state *mrb, mrb_value self)
 {
-  request_rec *r = ap_mrb_get_request();
+  request_rec *r = minim_get_request();
   return minim_ap_str_or_nil_value(mrb, r->pool, r->method);
 }
 
 static mrb_value minim_get_request_hostname(mrb_state *mrb, mrb_value self)
 {
-  request_rec *r = ap_mrb_get_request();
+  request_rec *r = minim_get_request();
   return minim_ap_str_or_nil_value(mrb, r->pool, r->hostname);
 }
 
 static mrb_value minim_set_request_content_type(mrb_state *mrb, mrb_value self)
 {
-  mrb_value *val;
+  mrb_value val;
   request_rec *r = minim_get_request();
   mrb_get_args(mrb, "S", &val);
 
@@ -116,7 +119,7 @@ static mrb_value minim_request_rprint(mrb_state *mrb, mrb_value self)
 void mrb_minim_request_gem_init(mrb_state *mrb)
 {
   struct RClass *req;
-  req = mrb_define_class(mrb, file, "Request", mrb->object_class);
+  req = mrb_define_class(mrb, "Request", mrb->object_class);
   //mrb_define_method(mrb, filestat, "initialize", mrb_filestat_init, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, req, "body", minim_get_request_body, MRB_ARGS_NONE());
   mrb_define_method(mrb, req, "unparsed_uri", minim_get_request_unparsed_uri, MRB_ARGS_NONE());
@@ -129,8 +132,4 @@ void mrb_minim_request_gem_init(mrb_state *mrb)
 
   mrb_define_method(mrb, req, "content_type=", minim_set_request_content_type, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, req, "rprint", minim_request_rprint, MRB_ARGS_REQ(1));
-
-  MRB_SET_INSTANCE_TT(filestat, MRB_TT_DATA);
-
-  DONE;
 }
