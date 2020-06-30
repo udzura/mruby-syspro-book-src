@@ -20,6 +20,7 @@ file '.libs/mod_minimruby.so' =>
      "-Wc,'-std=c99 -Wall -Werror-implicit-function-declaration -g' " +
      "-Wl,'-lcrypto -lm ' ./mod_minimruby.c"
 end
+task :mod => '.libs/mod_minimruby.so'
 
 desc "Install mod_minimruby.so to apache2"
 task :install => '.libs/mod_minimruby.so' do

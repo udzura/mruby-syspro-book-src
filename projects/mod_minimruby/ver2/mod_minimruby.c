@@ -58,29 +58,21 @@ static int mod_mruby_handler_inline(request_rec *r) {
     return DECLINED;
 
   ap_set_content_type(r, "text/plain");
+
   mrb_state *mrb = mrb_open();
-  mrbc_context *c = mrbc_context_new(mrb);
   mrb_value v;
-  char* utf8 = mrb_utf8_from_locale(dir_conf->minim_handler_code, -1);
-  if (!utf8)
-    return HTTP_INTERNAL_SERVER_ERROR;
 
-  v = mrb_load_string_cxt(mrb, utf8, c);
-  mrb_utf8_free(utf8);
-
+  v = mrb_load_string(mrb, dir_conf->minim_handler_code);
   if (mrb->exc) {
-    if (!mrb_undef_p(v)) {
-      ap_rprintf(r, "!!! mruby raised an error:\n");
-      ap_rprintf(
-                 r, "%s",
-                 mrb_string_cstr(mrb, mrb_inspect(mrb, mrb_obj_value(mrb->exc)))
-                 );
-      ap_rprintf(r, "\n");
-      r->status = HTTP_INTERNAL_SERVER_ERROR;
-      mrbc_context_free(mrb, c);
-      mrb_close(mrb);
-      return OK;
-    }
+    ap_rprintf(r, "!!! mruby raised an error:\n");
+    ap_rprintf(
+               r, "%s",
+               mrb_string_cstr(mrb, mrb_inspect(mrb, mrb_obj_value(mrb->exc)))
+               );
+    ap_rprintf(r, "\n");
+    r->status = HTTP_INTERNAL_SERVER_ERROR;
+    mrb_close(mrb);
+    return OK;
   }
 
   /* ap_rprintf(r, "My First Apache Module!\n"); */
@@ -91,7 +83,6 @@ static int mod_mruby_handler_inline(request_rec *r) {
     ap_rprintf(r, "%s", mrb_string_cstr(mrb, mrb_inspect(mrb, v)));
   }
 
-  mrbc_context_free(mrb, c);
   mrb_close(mrb);
   return OK;
 }
