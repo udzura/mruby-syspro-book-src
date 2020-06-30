@@ -7,6 +7,8 @@
 #include <mruby/compile.h>
 #include <mruby/string.h>
 
+void mrb_minim_request_gem_init(mrb_state *mrb);
+
 module AP_MODULE_DECLARE_DATA minimruby_module;
 
 typedef struct minim_config {
