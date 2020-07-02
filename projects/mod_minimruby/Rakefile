@@ -41,5 +41,5 @@ end
 desc "Install mod_minimruby.so to apache2"
 #task :install => '.libs/mod_minimruby.so' do
 task :install do
-  sh "install ./.libs/mod_minimruby.so /usr/lib/apache2/modules/mod_minimruby.so"
+  sh "apxs2 -i -n minimruby .libs/mod_minimruby.so"
 end
