@@ -5,7 +5,7 @@
 #include "httpd.h"
 #include "apr_strings.h"
 #include "http_protocol.h"
-
+#include "http_log.h"
 
 request_rec *minim_request_rec = NULL;
 
@@ -116,6 +116,17 @@ static mrb_value minim_request_rprint(mrb_state *mrb, mrb_value self)
   return mrb_nil_value();
 }
 
+static mrb_value minim_log_error(mrb_state *mrb, mrb_value self)
+{
+  char *val;
+  int level;
+  request_rec *r = minim_get_request();
+  mrb_get_args(mrb, "iz", &level, &val);
+  ap_log_error(APLOG_MARK, level, 0, r->server, "%s", val);
+
+  return mrb_nil_value();
+}
+
 void mrb_minim_request_gem_init(mrb_state *mrb)
 {
   struct RClass *req;
@@ -132,4 +143,17 @@ void mrb_minim_request_gem_init(mrb_state *mrb)
 
   mrb_define_method(mrb, req, "content_type=", minim_set_request_content_type, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, req, "rprint", minim_request_rprint, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, req, "log", minim_log_error, MRB_ARGS_REQ(2));
+
+  mrb_define_const(mrb, req, "APLOG_EMERG", mrb_fixnum_value(APLOG_EMERG));
+#define DEFINE_LOGLEVEL(name) \
+  mrb_define_const(mrb, req, #name, mrb_fixnum_value(name))
+
+  DEFINE_LOGLEVEL(APLOG_ALERT);
+  DEFINE_LOGLEVEL(APLOG_CRIT);
+  DEFINE_LOGLEVEL(APLOG_ERR);
+  DEFINE_LOGLEVEL(APLOG_WARNING);
+  DEFINE_LOGLEVEL(APLOG_NOTICE);
+  DEFINE_LOGLEVEL(APLOG_INFO);
+  DEFINE_LOGLEVEL(APLOG_DEBUG);
 }

@@ -15,13 +15,14 @@ end
 
 file "mruby/build/host/lib/libmruby.a" => :compile_mruby
 
+files = Dir.glob("./*.c")
+files.each {|f| file f }
 file '.libs/mod_minimruby.so' =>
-     ["mruby/build/host/lib/libmruby.a", "mod_minimruby.c"] do
-  files = Dir.glob("./*.c").join(" ")
+     ["mruby/build/host/lib/libmruby.a", *files] do
   sh "apxs2 -a -c -I./mruby/include -L./mruby/build/host/lib " +
      "-lcrypto -lm -lmruby -lm -lreadline -lpthread -lrt " +
      "-Wc,'-std=c99 -Wall -Werror-implicit-function-declaration -g' " +
-     "-Wl,'-lcrypto -lm ' #{files}"
+     "-Wl,'-lcrypto -lm ' #{files.join(' ')}"
 end
 task :mod => '.libs/mod_minimruby.so'
 

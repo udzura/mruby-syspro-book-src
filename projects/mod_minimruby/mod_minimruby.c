@@ -69,12 +69,15 @@ void minim_clear_request(void);
 
 static int mod_mruby_handler_inline(request_rec *r) {
   minim_dir_config_t *dir_conf = ap_get_module_config(r->per_dir_config, &minimruby_module);
+  minim_config_t *conf = ap_get_module_config(r->server->module_config, &minimruby_module);
+  if (!conf->minim_enabled)
+    return DECLINED;
   if (!dir_conf->minim_handler_code)
     return DECLINED;
 
   if (apr_thread_mutex_lock(minim_mutex) != APR_SUCCESS) {
     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "mutex failed");
-    return DECLINED;
+    return HTTP_INTERNAL_SERVER_ERROR;
   }
 
   (void)minim_push_request(r);
@@ -111,7 +114,7 @@ static int mod_mruby_handler_inline(request_rec *r) {
   minim_clear_request();
   if (apr_thread_mutex_unlock(minim_mutex) != APR_SUCCESS) {
     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "mutex unlock failed");
-    return OK;
+    return HTTP_INTERNAL_SERVER_ERROR;
   }
   mrb_close(mrb);
   return OK;
