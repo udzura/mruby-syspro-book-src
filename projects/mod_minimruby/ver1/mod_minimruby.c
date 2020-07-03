@@ -48,8 +48,11 @@ static const char *set_minim_handler_inline(cmd_parms * cmd, void *mconfig, cons
   return NULL;
 }
 
-static int mod_mruby_handler_inline(request_rec *r) {
+static int minim_handler_inline(request_rec *r) {
   minim_dir_config_t *dir_conf = ap_get_module_config(r->per_dir_config, &minimruby_module);
+  minim_config_t *conf = ap_get_module_config(r->server->module_config, &minimruby_module);
+  if (!conf->minim_enabled)
+    return DECLINED;
   if (!dir_conf->minim_handler_code)
     return DECLINED;
 
@@ -71,7 +74,7 @@ static const command_rec module_cmds[] =
 
 static void register_hooks(apr_pool_t *p)
 {
-  ap_hook_handler(mod_mruby_handler_inline, NULL, NULL, APR_HOOK_MIDDLE);
+  ap_hook_handler(minim_handler_inline, NULL, NULL, APR_HOOK_MIDDLE);
 }
 
 module AP_MODULE_DECLARE_DATA minimruby_module =
