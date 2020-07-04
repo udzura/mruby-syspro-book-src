@@ -7,15 +7,16 @@
 #include "http_protocol.h"
 #include "http_log.h"
 
+#include "mod_minimruby.h"
+
 request_rec *minim_request_rec = NULL;
 
-int minim_push_request(request_rec *r)
+void minim_push_request(request_rec *r)
 {
   minim_request_rec = r;
-  return 0;
 }
 
-request_rec *minim_get_request(void)
+static request_rec *minim_get_request(void)
 {
   return minim_request_rec;
 }
@@ -54,6 +55,12 @@ static mrb_value minim_get_request_body(mrb_state *mrb, mrb_value self)
   return mrb_nil_value();
 }
 
+static mrb_value minim_get_request_args(mrb_state *mrb, mrb_value self)
+{
+  request_rec *r = minim_get_request();
+  return minim_ap_str_or_nil_value(mrb, r->pool, r->args);
+}
+
 static mrb_value minim_get_request_unparsed_uri(mrb_state *mrb, mrb_value self)
 {
   request_rec *r = minim_get_request();
@@ -70,12 +77,6 @@ static mrb_value minim_get_request_path_info(mrb_state *mrb, mrb_value self)
 {
   request_rec *r = minim_get_request();
   return minim_ap_str_or_nil_value(mrb, r->pool, r->path_info);
-}
-
-static mrb_value minim_get_request_args(mrb_state *mrb, mrb_value self)
-{
-  request_rec *r = minim_get_request();
-  return minim_ap_str_or_nil_value(mrb, r->pool, r->args);
 }
 
 static mrb_value minim_get_request_content_type(mrb_state *mrb, mrb_value self)
@@ -131,7 +132,6 @@ void mrb_minim_request_gem_init(mrb_state *mrb)
 {
   struct RClass *req;
   req = mrb_define_class(mrb, "Request", mrb->object_class);
-  //mrb_define_method(mrb, filestat, "initialize", mrb_filestat_init, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, req, "body", minim_get_request_body, MRB_ARGS_NONE());
   mrb_define_method(mrb, req, "unparsed_uri", minim_get_request_unparsed_uri, MRB_ARGS_NONE());
   mrb_define_method(mrb, req, "uri", minim_get_request_uri, MRB_ARGS_NONE());
@@ -145,10 +145,11 @@ void mrb_minim_request_gem_init(mrb_state *mrb)
   mrb_define_method(mrb, req, "rprint", minim_request_rprint, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, req, "log", minim_log_error, MRB_ARGS_REQ(2));
 
-  mrb_define_const(mrb, req, "APLOG_EMERG", mrb_fixnum_value(APLOG_EMERG));
+  //mrb_define_const(mrb, req, "APLOG_EMERG", mrb_fixnum_value(APLOG_EMERG));
 #define DEFINE_LOGLEVEL(name) \
   mrb_define_const(mrb, req, #name, mrb_fixnum_value(name))
 
+  DEFINE_LOGLEVEL(APLOG_EMERG);
   DEFINE_LOGLEVEL(APLOG_ALERT);
   DEFINE_LOGLEVEL(APLOG_CRIT);
   DEFINE_LOGLEVEL(APLOG_ERR);

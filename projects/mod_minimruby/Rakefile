@@ -15,7 +15,7 @@ end
 
 file "mruby/build/host/lib/libmruby.a" => :compile_mruby
 
-files = Dir.glob("./*.c")
+files = Dir.glob("ver3/*.[ch]")
 files.each {|f| file f }
 
 libs = %w(crypto mruby m readline pthread rt).map {|l| "-l#{l}" }
@@ -30,12 +30,13 @@ file '.libs/mod_minimruby.so' =>
 end
 task :mod => '.libs/mod_minimruby.so'
 
-task :vermod, [:ver] do |_, args|
-  files = Dir.glob("./#{args[:ver]}/*.c")
+
+task :mod_debug, [:ver] do |_, args|
+  wc = '-std=c99 -O0 -g -fno-omit-frame-pointer'
   sh "apxs -a -c -I./mruby/include -L./mruby/build/host/lib " +
      libs.join(" ") + " " +
      "-Wc,'#{wc}' " +
-     "-Wl,'#{wl} ' " + files.join(' ')
+     "-Wl,'' " + files.join(' ')
 end
 
 desc "Install mod_minimruby.so to apache2"

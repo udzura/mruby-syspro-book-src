@@ -10,8 +10,7 @@ apr_thread_mutex_t *minim_mutex;
 #include <mruby.h>
 #include <mruby/compile.h>
 #include <mruby/string.h>
-
-void mrb_minim_request_gem_init(mrb_state *mrb);
+#include "mod_minimruby.h"
 
 module AP_MODULE_DECLARE_DATA minimruby_module;
 
@@ -67,9 +66,6 @@ static void minim_child_init(apr_pool_t *p, server_rec *server)
   }
 }
 
-int minim_push_request(request_rec *r);
-void minim_clear_request(void);
-
 static int minim_handler_inline(request_rec *r) {
   minim_dir_config_t *dir_conf = ap_get_module_config(r->per_dir_config, &minimruby_module);
   minim_config_t *conf = ap_get_module_config(r->server->module_config, &minimruby_module);
@@ -83,7 +79,7 @@ static int minim_handler_inline(request_rec *r) {
     return HTTP_INTERNAL_SERVER_ERROR;
   }
 
-  (void)minim_push_request(r);
+  minim_push_request(r);
 
   ap_set_content_type(r, "text/plain");
 
@@ -104,8 +100,6 @@ static int minim_handler_inline(request_rec *r) {
     return OK;
   }
 
-  /* ap_rprintf(r, "My First Apache Module!\n"); */
-  /* ap_rprintf(r, "Code: %s\n", dir_conf->minim_handler_code); */
   const char *ret;
   if (mrb_string_p(v)) {
     ret = mrb_string_cstr(mrb, v);

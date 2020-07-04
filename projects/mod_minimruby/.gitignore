@@ -9,3 +9,5 @@
 .libs/
 
 mruby/
+
+*.data*

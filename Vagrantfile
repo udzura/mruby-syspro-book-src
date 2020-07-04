@@ -8,4 +8,5 @@ Vagrant.configure("2") do |config|
   end
   config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.synced_folder "/usr/local/ghq/github.com/mruby/mruby", "/opt/mruby"
+  config.disksize.size = '20GB'
 end
