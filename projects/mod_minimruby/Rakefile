@@ -18,12 +18,12 @@ file "mruby/build/host/lib/libmruby.a" => :compile_mruby
 files = Dir.glob("./*.c")
 files.each {|f| file f }
 
-libs = %w(crypto m mruby m readline pthread rt).map {|l| "-l#{l}" }
-wc = '-std=c99 -Wall -Werror-implicit-function-declaration -g'
-wl = '-lcrypto -lm '
+libs = %w(crypto mruby m readline pthread rt).map {|l| "-l#{l}" }
+wc = '-std=c99' # -Wall -Werror-implicit-function-declaration -g'
+wl = '' #'-lcrypto -lm '
 file '.libs/mod_minimruby.so' =>
      ["mruby/build/host/lib/libmruby.a", *files] do
-  sh "apxs2 -a -c -I./mruby/include -L./mruby/build/host/lib " +
+  sh "apxs -a -c -I./mruby/include -L./mruby/build/host/lib " +
      libs.join(" ") + " " +
      "-Wc,'#{wc}' " +
      "-Wl,'#{wl} ' " + files.join(' ')
@@ -32,7 +32,7 @@ task :mod => '.libs/mod_minimruby.so'
 
 task :vermod, [:ver] do |_, args|
   files = Dir.glob("./#{args[:ver]}/*.c")
-  sh "apxs2 -a -c -I./mruby/include -L./mruby/build/host/lib " +
+  sh "apxs -a -c -I./mruby/include -L./mruby/build/host/lib " +
      libs.join(" ") + " " +
      "-Wc,'#{wc}' " +
      "-Wl,'#{wl} ' " + files.join(' ')
@@ -41,5 +41,5 @@ end
 desc "Install mod_minimruby.so to apache2"
 #task :install => '.libs/mod_minimruby.so' do
 task :install do
-  sh "apxs2 -i -n minimruby .libs/mod_minimruby.so"
+  sh "apxs -i -n minimruby .libs/mod_minimruby.so"
 end
