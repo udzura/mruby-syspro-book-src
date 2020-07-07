@@ -1,5 +1,6 @@
 #include <mruby.h>
 #include <mruby/string.h>
+#include <mruby/error.h>
 
 #define CORE_PRIVATE
 #include "httpd.h"
@@ -45,10 +46,12 @@ static mrb_value minim_get_request_body(mrb_state *mrb, mrb_value self)
   if (r->method_number == M_POST ||
       r->method_number == M_PUT ||
       r->method_number == M_PATCH) {
-    ap_setup_client_block(r, REQUEST_CHUNKED_ERROR);
+    if(ap_setup_client_block(r, REQUEST_CHUNKED_ERROR) != 0)
+      mrb_sys_fail(mrb, "ap_setup_client_block");
+    if(!ap_should_client_block(r))
+      return mrb_nil_value();
     len = r->remaining;
     val = apr_pcalloc(r->pool, len);
-    ap_should_client_block(r);
     ap_get_client_block(r, val, len);
     return mrb_str_new(mrb, val, len);
   }

@@ -66,6 +66,16 @@ static void minim_child_init(apr_pool_t *p, server_rec *server)
   }
 }
 
+#define MINIM_HANDLER_TEARDOWN(r, mrb)          \
+  do {                                                         \
+    minim_clear_request();                                              \
+    if (apr_thread_mutex_unlock(minim_mutex) != APR_SUCCESS) {          \
+      ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "mutex unlock failed"); \
+      return HTTP_INTERNAL_SERVER_ERROR;                                \
+    }                                                                   \
+    mrb_close(mrb);                                                     \
+  }while(0)
+
 static int minim_handler_inline(request_rec *r) {
   minim_dir_config_t *dir_conf = ap_get_module_config(r->per_dir_config, &minimruby_module);
   minim_config_t *conf = ap_get_module_config(r->server->module_config, &minimruby_module);
@@ -88,6 +98,8 @@ static int minim_handler_inline(request_rec *r) {
   mrb_minim_request_gem_init(mrb);
 
   v = mrb_load_string(mrb, dir_conf->minim_handler_code);
+  minim_clear_request();
+
   if (mrb->exc) {
     ap_rprintf(r, "!!! mruby raised an error:\n");
     ap_rprintf(
@@ -96,7 +108,7 @@ static int minim_handler_inline(request_rec *r) {
                );
     ap_rprintf(r, "\n");
     r->status = HTTP_INTERNAL_SERVER_ERROR;
-    mrb_close(mrb);
+    MINIM_HANDLER_TEARDOWN(r, mrb);
     return OK;
   }
 
@@ -108,12 +120,7 @@ static int minim_handler_inline(request_rec *r) {
   }
   ap_log_error(APLOG_MARK, APLOG_NOTICE, 0, r->server, "return value is: %s", ret);
 
-  minim_clear_request();
-  if (apr_thread_mutex_unlock(minim_mutex) != APR_SUCCESS) {
-    ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "mutex unlock failed");
-    return HTTP_INTERNAL_SERVER_ERROR;
-  }
-  mrb_close(mrb);
+  MINIM_HANDLER_TEARDOWN(r, mrb);
   return OK;
 }
 
