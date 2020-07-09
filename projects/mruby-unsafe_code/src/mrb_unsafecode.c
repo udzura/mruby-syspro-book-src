@@ -54,11 +54,28 @@ static mrb_value mrb_unsafecode_check_password(mrb_state *mrb, mrb_value self)
     return mrb_false_value();
 }
 
+#include <mruby/array.h>
+static mrb_value mrb_test_split_each(mrb_state *mrb, mrb_value self)
+{
+  mrb_value target, array;
+  mrb_get_args(mrb, "S", &target);
+
+  array = mrb_funcall(mrb, target, "split", 1, mrb_str_new_lit(mrb, ","));
+  for(mrb_int i = 0; i < RARRAY_LEN(array); i++ ) {
+    // ここで各文字列ごとの処理をする
+    mrb_value current = mrb_ary_ref(mrb, array, i);
+    mrb_p(mrb, current);
+  }
+  return array;
+}
+
 void mrb_mruby_unsafe_code_gem_init(mrb_state *mrb)
 {
   struct RClass *unsafecode;
   unsafecode = mrb_define_class(mrb, "UnsafeCode", mrb->object_class);
   mrb_define_class_method(mrb, unsafecode, "check", mrb_unsafecode_check_password, MRB_ARGS_REQ(1));
+
+  mrb_define_module_function(mrb, mrb->kernel_module, "runtest", mrb_test_split_each, MRB_ARGS_REQ(1));
   DONE;
 }
 
