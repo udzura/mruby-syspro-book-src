@@ -30,16 +30,15 @@ static mrb_value mrb_my_uname(mrb_state *mrb, mrb_value self) {
 }
 
 static mrb_value mrb_my_stat_size(mrb_state *mrb, mrb_value self) {
-  struct stat buf;
+  struct stat *buf;
   char *pathname;
   mrb_get_args(mrb, "z", &pathname);
-  int ret = stat(pathname, &buf);
+  int ret = stat(pathname, buf);
   if (ret == -1) {
     mrb_sys_fail(mrb, "stat failed");
   }
-  mrb_fixnum();
 
-  return mrb_fixnum_value((mrb_int)buf.st_size);
+  return mrb_fixnum_value((mrb_int)buf->st_size);
 }
 
 #include <stdio.h>
