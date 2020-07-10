@@ -54,6 +54,21 @@ static mrb_value mrb_unsafecode_check_password(mrb_state *mrb, mrb_value self)
     return mrb_false_value();
 }
 
+#include <mruby/string.h>
+static mrb_value mrb_test_bang_str(mrb_state *mrb, mrb_value self)
+{
+  mrb_value s;
+  mrb_get_args(mrb, "S", &s);
+  //char *tgt = RSTRING_PTR(s);
+  char *tgt = mrb_str_to_cstr(mrb, s);
+  for(int i = 0; i < RSTRING_LEN(s); i++){
+    if(tgt[i] == 'a')
+      tgt[i] = 'A';
+  }
+
+  return mrb_true_value();
+}
+
 #include <mruby/array.h>
 static mrb_value mrb_test_split_each(mrb_state *mrb, mrb_value self)
 {
@@ -76,6 +91,7 @@ void mrb_mruby_unsafe_code_gem_init(mrb_state *mrb)
   mrb_define_class_method(mrb, unsafecode, "check", mrb_unsafecode_check_password, MRB_ARGS_REQ(1));
 
   mrb_define_module_function(mrb, mrb->kernel_module, "runtest", mrb_test_split_each, MRB_ARGS_REQ(1));
+  mrb_define_module_function(mrb, mrb->kernel_module, "bang_str", mrb_test_bang_str, MRB_ARGS_REQ(1));
   DONE;
 }
 
