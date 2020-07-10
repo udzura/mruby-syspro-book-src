@@ -2,13 +2,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define NESTING_MAX 5
+
 void myfunc(int count)
 {
   char dummy[65536 - 64] = "--mark--";
   int newcnt = count + 1;
 
   printf("stack #%d:   %p, %p, %p\n", count, &count, &newcnt, dummy);
-  if (newcnt > 5)
+  if (newcnt > NESTING_MAX)
     return;
   else {
     myfunc(newcnt);
