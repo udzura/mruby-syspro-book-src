@@ -3,8 +3,8 @@ MRuby::Build.new do |conf|
   conf.gembox 'default'
   conf.gem File.expand_path(File.dirname(__FILE__))
   conf.enable_test
-  conf.cc.flags << '-fsanitize=address'
-  conf.linker.flags << '-fsanitize=address'
+  #conf.cc.flags << '-fsanitize=address'
+  #conf.linker.flags << '-fsanitize=address'
 
   if ENV['DEBUG'] == 'true'
     conf.enable_debug
