@@ -1,0 +1,30 @@
+# coding: utf-8
+file :mruby do
+  sh "git clone --depth=1 git://github.com/mruby/mruby.git"
+  Dir.chdir 'mruby' do
+    sh "git fetch --tags"
+    rev = %x{git rev-parse 2.1.2}
+    sh "git checkout #{rev}"
+  end
+end
+
+MRUBY_CONFIG = File.expand_path("apache_build_config.rb")
+desc "compile binary"
+task :compile_mruby => :mruby do
+  sh "cd mruby && rake all MRUBY_CONFIG=#{MRUBY_CONFIG}"
+end
+
+file "mruby/build/host/lib/libmruby.a" => :compile_mruby
+
+# Cファイルとヘッダファイルを動的に探す
+files = Dir.glob("./*.[ch]")
+files.each {|f| file f }
+
+libs = %w(crypto mruby m readline pthread rt).map {|l| "-l#{l}" }
+file '.libs/mod_minimruby.so' =>
+     ["mruby/build/host/lib/libmruby.a", *files] do
+  sh "apxs -a -c -I./mruby/include -L./mruby/build/host/lib " +
+     libs.join(" ") + " " +
+     "-Wc,'-std=c99' " + files.join(' ')
+end
+task :mod => '.libs/mod_minimruby.so'

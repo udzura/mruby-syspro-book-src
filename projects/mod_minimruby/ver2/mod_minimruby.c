@@ -2,6 +2,7 @@
 #include "httpd.h"
 #include "http_config.h"
 #include "http_protocol.h"
+#include "http_log.h"
 
 #include <mruby.h>
 #include <mruby/compile.h>
@@ -91,9 +92,9 @@ static int minim_handler_inline(request_rec *r) {
 static const command_rec module_cmds[] =
   {
    AP_INIT_FLAG("miniMrubyEnable", set_minim_handler_enable,
-                NULL, RSRC_CONF | ACCESS_CONF, "Sample handler"),
+                NULL, RSRC_CONF, "Enable minimruby."),
    AP_INIT_TAKE1("miniMrubyCode", set_minim_handler_inline,
-                NULL, RSRC_CONF | ACCESS_CONF, "Sample handler code"),
+                NULL, ACCESS_CONF, "Set mruby code to eval."),
    { NULL },
   };
 
