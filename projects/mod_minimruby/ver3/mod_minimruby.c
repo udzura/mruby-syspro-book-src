@@ -3,14 +3,15 @@
 #include "http_config.h"
 #include "http_protocol.h"
 #include "http_log.h"
-#include "apr_thread_proc.h"
-
-apr_thread_mutex_t *minim_mutex;
 
 #include <mruby.h>
 #include <mruby/compile.h>
 #include <mruby/string.h>
+
 #include "mod_minimruby.h"
+
+#include "apr_thread_proc.h"
+apr_thread_mutex_t *minim_mutex;
 
 module AP_MODULE_DECLARE_DATA minimruby_module;
 
@@ -44,6 +45,15 @@ static const char *set_minim_handler_enable(cmd_parms *cmd, void *mconfig, int f
   return NULL;
 }
 
+static void minim_child_init(apr_pool_t *p, server_rec *server)
+{
+  apr_status_t status = apr_thread_mutex_create(&minim_mutex, APR_THREAD_MUTEX_DEFAULT, p);
+  if (status != APR_SUCCESS) {
+    ap_log_error(APLOG_MARK, APLOG_ERR, 0, server, "Error creating thread mutex.");
+    abort();
+  }
+}
+
 static const char *set_minim_handler_inline(cmd_parms * cmd, void *mconfig, const char *arg)
 {
   #define CODE_MAX 32768
@@ -57,15 +67,6 @@ static const char *set_minim_handler_inline(cmd_parms * cmd, void *mconfig, cons
   return NULL;
 }
 
-static void minim_child_init(apr_pool_t *p, server_rec *server)
-{
-  apr_status_t status = apr_thread_mutex_create(&minim_mutex, APR_THREAD_MUTEX_DEFAULT, p);
-  if (status != APR_SUCCESS) {
-    ap_log_error(APLOG_MARK, APLOG_ERR, 0, server, "Error creating thread mutex.");
-    abort();
-  }
-}
-
 #define MINIM_HANDLER_TEARDOWN(r, mrb)          \
   do {                                                         \
     minim_clear_request();                                              \
@@ -74,7 +75,7 @@ static void minim_child_init(apr_pool_t *p, server_rec *server)
       return HTTP_INTERNAL_SERVER_ERROR;                                \
     }                                                                   \
     mrb_close(mrb);                                                     \
-  }while(0)
+  } while(0)
 
 static int minim_handler_inline(request_rec *r) {
   minim_dir_config_t *dir_conf = ap_get_module_config(r->per_dir_config, &minimruby_module);
@@ -88,9 +89,7 @@ static int minim_handler_inline(request_rec *r) {
     ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r, "mutex failed");
     return HTTP_INTERNAL_SERVER_ERROR;
   }
-
   minim_push_request(r);
-
   ap_set_content_type(r, "text/plain");
 
   mrb_state *mrb = mrb_open();
@@ -98,8 +97,6 @@ static int minim_handler_inline(request_rec *r) {
   mrb_minim_request_gem_init(mrb);
 
   v = mrb_load_string(mrb, dir_conf->minim_handler_code);
-  minim_clear_request();
-
   if (mrb->exc) {
     ap_rprintf(r, "!!! mruby raised an error:\n");
     ap_rprintf(
@@ -119,7 +116,6 @@ static int minim_handler_inline(request_rec *r) {
     ret = mrb_string_cstr(mrb, mrb_inspect(mrb, v));
   }
   ap_log_error(APLOG_MARK, APLOG_NOTICE, 0, r->server, "return value is: %s", ret);
-
   MINIM_HANDLER_TEARDOWN(r, mrb);
   return OK;
 }
@@ -127,9 +123,9 @@ static int minim_handler_inline(request_rec *r) {
 static const command_rec module_cmds[] =
   {
    AP_INIT_FLAG("miniMrubyEnable", set_minim_handler_enable,
-                NULL, RSRC_CONF | ACCESS_CONF, "Sample handler"),
+                NULL, RSRC_CONF, "Enable minimruby."),
    AP_INIT_TAKE1("miniMrubyCode", set_minim_handler_inline,
-                NULL, RSRC_CONF | ACCESS_CONF, "Sample handler code"),
+                NULL, ACCESS_CONF, "Set mruby code to eval."),
    { NULL },
   };
 
