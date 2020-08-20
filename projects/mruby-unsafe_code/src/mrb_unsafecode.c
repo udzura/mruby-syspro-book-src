@@ -93,8 +93,8 @@ static mrb_value mrb_test_bang_str(mrb_state *mrb, mrb_value self)
 {
   mrb_value s;
   mrb_get_args(mrb, "S", &s);
-  //char *tgt = RSTRING_PTR(s);
-  char *tgt = mrb_str_to_cstr(mrb, s);
+  char *tgt = RSTRING_PTR(s);
+  //char *tgt = mrb_str_to_cstr(mrb, s);
   for(int i = 0; i < RSTRING_LEN(s); i++){
     if(tgt[i] == 'a')
       tgt[i] = 'A';
