@@ -26,6 +26,7 @@ rat.rb:37:in babylonian_sqrt: integer overflow (RangeError)
 
 * 原因としては、
   * mruby 3.0.0より、mruby-rational のインスタンス生成時に、 numerator 、 denominator の両方についてintの範囲を超えたら例外にするようになった。 [commit](https://github.com/mruby/mruby/commit/cc59860e4077aa5f3dbd398639c84b9214ec5d7d)
+    * また、Integerの自動拡張の挙動もなくなった。
   * mruby 2.1.2 までは、 `DROP_PRECISION()` と言うマクロがあろ、rationalのnumerator 、 denominator がオーバーフローしそうな際にintの範囲に納めていた。
 
 ということで、p.62以降の内容は、実際には精度を落としながら計算を続けていたことになります。本内容はあくまでmgemの実装のサンプルで、正確な数値計算を目的とはしていないという点を留意して学習にお使いください。
