@@ -1,4 +1,4 @@
-db = SQLite3::Database.new('/var/lib/nginx/dyn-proxy.db')
+db = SQLite3::Database.new('/var/lib/apache2/dyn-proxy.db')
 
 backends = []
 db.execute('select upstream, weight from servers;') do |row, _|
